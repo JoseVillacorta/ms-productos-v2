@@ -3,7 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("jacoco")
-    id("org.sonarqube") version "4.4.1.3373"  // ← Agregar esta línea
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 group = "org.example"
@@ -70,15 +70,18 @@ tasks.named("jacocoTestReport", JacocoReport::class) {
     }
 }
 
-// AGREGAR ESTA SECCIÓN SONAR:
 sonarqube {
     properties {
-        property "sonar.projectKey", System.getenv("SONAR_PROJECT_KEY") ?: "ms-productos-v2"
-        property "sonar.organization", System.getenv("SONAR_ORGANIZATION") ?: "tu-organizacion"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.sources", "src/main/java"
-        property "sonar.tests", "src/test/java"
-        property "sonar.java.binaries", layout.buildDirectory.dir("classes/java/main").get().asFile.absolutePath
-        property "sonar.coverage.jacoco.xmlReportPaths", layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.absolutePath
+        property("sonar.projectKey", "josevillacorta-msproductos")
+        property("sonar.organization", "Jose_Villacorta")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.token", System.getenv("SONAR_TOKEN") ?: "ms-productos")
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        property("sonar.java.coveragePlugin", "jacoco")
+        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
+
+
+

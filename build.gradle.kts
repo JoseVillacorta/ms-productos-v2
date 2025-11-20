@@ -75,11 +75,9 @@ sonarqube {
         property("sonar.projectKey", "josevillacorta-msproductos")
         property("sonar.organization", "Jose_Villacorta")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.token", System.getenv("SONAR_TOKEN") ?: "ms-productos")
         property("sonar.sources", "src/main/java")
         property("sonar.tests", "src/test/java")
-        property("sonar.java.coveragePlugin", "jacoco")
-        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.gradle.skipCompile", "true")
     }
 }
 

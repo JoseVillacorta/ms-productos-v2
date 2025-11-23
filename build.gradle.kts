@@ -73,7 +73,7 @@ tasks.named("jacocoTestReport", JacocoReport::class) {
 sonarqube {
     properties {
         property("sonar.projectKey", "josevillacorta-msproductos")
-        property("sonar.organization", "Jose_Villacorta")
+        property("sonar.organization", "JoseVillacorta")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.sources", "src/main/java")
         property("sonar.tests", "src/test/java")

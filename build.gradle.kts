@@ -77,7 +77,6 @@ sonarqube {
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.sources", listOf("src/main/java"))
         property("sonar.tests", listOf("src/test/java"))
-        property("sonar.gradle.skipCompile", "true")
     }
 }
 

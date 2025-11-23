@@ -30,8 +30,10 @@ jobs:
           SONAR_PROJECT_KEY: ${{ env.SONAR_PROJECT_KEY }}
           SONAR_ORGANIZATION: ${{ env.SONAR_ORGANIZATION }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: ./gradlew clean test jacocoTestReport sonarqube \
-              -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} \
-              -Dsonar.organization=${{ env.SONAR_ORGANIZATION }} \
-              -Dsonar.token=${{ env.SONAR_TOKEN }} \
-              -Dsonar.host.url=https://sonarcloud.io
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean test jacocoTestReport sonarqube \
+            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+            -Dsonar.organization=$SONAR_ORGANIZATION \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.host.url=https://sonarcloud.io

@@ -1,4 +1,5 @@
 name: ms-productos-sonar
+
 on:
   push:
     branches: [ main ]
@@ -12,6 +13,7 @@ jobs:
       SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -25,15 +27,19 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Tests, cobertura y SonarCloud
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build & Run Tests
+        run: ./gradlew clean build jacocoTestReport
+
+      - name: SonarCloud Analysis
         env:
           SONAR_PROJECT_KEY: ${{ env.SONAR_PROJECT_KEY }}
           SONAR_ORGANIZATION: ${{ env.SONAR_ORGANIZATION }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew clean test jacocoTestReport sonarqube \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.organization=$SONAR_ORGANIZATION \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.host.url=https://sonarcloud.io
+        run: ./gradlew sonarqube \
+          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+          -Dsonar.organization=$SONAR_ORGANIZATION \
+          -Dsonar.login=$SONAR_TOKEN \
+          -Dsonar.host.url=https://sonarcloud.io

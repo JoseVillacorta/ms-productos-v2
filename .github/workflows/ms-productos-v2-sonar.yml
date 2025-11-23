@@ -1,4 +1,4 @@
-name: ms-productos-sonar
+name: ms-productos-ci
 
 on:
   push:
@@ -9,11 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -32,15 +28,3 @@ jobs:
 
       - name: Build & Run Tests
         run: ./gradlew clean build jacocoTestReport
-
-      - name: SonarCloud Analysis
-        env:
-          SONAR_PROJECT_KEY: ${{ env.SONAR_PROJECT_KEY }}
-          SONAR_ORGANIZATION: ${{ env.SONAR_ORGANIZATION }}
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: |
-          ./gradlew sonarqube \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.organization=$SONAR_ORGANIZATION \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=https://sonarcloud.io

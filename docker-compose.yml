@@ -1,0 +1,114 @@
+version: "3.8"
+
+services:
+  # Base de datos PostgreSQL para productos
+  postgres-productos:
+    image: postgres:15
+    container_name: postgres-productos
+    environment:
+      POSTGRES_DB: db_productos_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-productos-data:/var/lib/postgresql/data
+      - ./database/script.sql:/docker-entrypoint-initdb.d/script.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d db_productos_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper para Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - ms-productos-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - ms-productos-network
+
+  # Microservicio ms-productos-v2
+  ms-productos-v2:
+    build: .
+    container_name: ms-productos-v2
+    depends_on:
+      postgres-productos:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      # Spring Configuration
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_LOCATION: classpath:/,file:./config/
+      
+      # Database Configuration
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres-productos:5432/db_productos_dev
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: admin
+      
+      # Kafka Configuration
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_PRODUCER_KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+      SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.springframework.kafka.support.serializer.JsonSerializer
+      SPRING_KAFKA_CONSUMER_GROUP_ID: product-group
+      SPRING_KAFKA_CONSUMER_KEY_DESERIALIZER: org.apache.kafka.common.serialization.StringDeserializer
+      SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER: org.springframework.kafka.support.serializer.JsonDeserializer
+      SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES: "*"
+      
+      # Server Configuration
+      SERVER_PORT: 8083
+      
+      # Eureka Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://localhost:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: true
+      
+      # Logging
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_R2DBC: DEBUG
+    ports:
+      - "8083:8083"
+    networks:
+      - ms-productos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Health Check Service
+  postgres-healthcheck:
+    image: postgres:15
+    container_name: postgres-healthcheck
+    depends_on:
+      - postgres-productos
+    command: pg_isready -h postgres-productos -p 5432 -U postgres -d db_productos_dev
+    networks:
+      - ms-productos-network
+
+networks:
+  ms-productos-network:
+    driver: bridge
+
+volumes:
+  postgres-productos-data:
+    driver: local

@@ -31,11 +31,23 @@ public class ProductService {
         return repository.findById(id);
     }
 
-    public Flux<Map<String, Object>> obtenerProductosBajoStock(Integer minimo) {
+    public Flux<Producto> obtenerProductosBajoStock(Integer minimo) {
         return databaseClient.sql("SELECT * FROM productos_bajo_stock($1)")
                 .bind(0, minimo)
-                .fetch().all();
+                .map(row -> {
+                    Producto p = new Producto();
+                    p.setId(row.get("id", Long.class));
+                    p.setNombre(row.get("nombre", String.class));
+                    p.setDescripcion(row.get("descripcion", String.class));
+                    p.setPrecio(row.get("precio", Double.class));
+                    p.setStock(row.get("stock", Integer.class));
+                    p.setActivo(row.get("activo", Boolean.class));
+                    p.setFechaCreacion(row.get("fecha_creacion", java.time.LocalDateTime.class));
+                    return p;
+                })
+                .all();
     }
+
 
     // Commands (escrituras asíncronas)
     public Mono<Producto> save(Producto producto) {

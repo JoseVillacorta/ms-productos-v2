@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: productkubdb-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: hostpath
+  hostPath:
+    path: /data/productkubdb
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: productkubdb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: hostpath
+  volumeName: productkubdb-pv
